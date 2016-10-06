@@ -386,6 +386,9 @@ class Reader(object):
         for entry in entries:
             entry = entry.split('=', 1)
 
+            if(len(entry) != 2):
+                continue
+
             ID = entry[0]
             try:
                 entry_type = self.infos[ID].type
