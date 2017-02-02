@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 import collections
 import sys
 import re
+from utils import get_minimal_representation
 
 try:
     from collections import Counter
@@ -556,6 +557,44 @@ class _Record(object):
             return False
         else:
             return True
+
+    def get_zygosity(self):
+        genotype = 'UNKNOWN'
+        if len(self.samples) > 0:
+            genotype = self.samples[0].data.GT
+
+        if genotype in ["1/0", "0/1", "1/2", "2/1"]:
+            genotype = "HET"
+        elif genotype == "1/1":
+            genotype = "HOM"
+        elif genotype == "0/0":
+            genotype = "REF"
+
+        return genotype
+
+    def get_mutation_id(self, include_genotype=False, position_only=False):
+        """
+        return a uppercase vcf id from vcf line fields
+        return chrom, pos, ref, alt, genotype seprated by ':'
+        """
+        chrom = self.CHROM
+        if chrom.lower().startswith("chr"):
+            chrom = chrom[3:]
+
+        alt = ''
+        if len(self.ALT) > 0:
+            alt = self.ALT[0]
+
+        pos, ref, alt = get_minimal_representation(self.POS, self.REF, alt)
+
+        if position_only:
+            id_fields = [chrom, pos]
+        else:
+            id_fields = [chrom, pos, ref, alt]
+            if include_genotype:
+                id_fields.append(self.get_zygosity())
+
+        return ':'.join(map(str, id_fields)).upper()
 
 
 class _AltRecord(object):

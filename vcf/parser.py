@@ -632,6 +632,15 @@ class Reader(object):
             requires pysam
 
         """
+        self.init_tabix()
+
+        if self._prepend_chr and chrom[:3] == 'chr':
+            chrom = chrom[3:]
+
+        self.reader = self._tabix.fetch(chrom, start, end)
+        return self
+
+    def init_tabix(self):
         if not pysam:
             raise Exception('pysam not available, try "pip install pysam"?')
         if not self.filename:
@@ -641,11 +650,9 @@ class Reader(object):
             self._tabix = pysam.Tabixfile(self.filename,
                                           encoding=self.encoding)
 
-        if self._prepend_chr and chrom[:3] == 'chr':
-            chrom = chrom[3:]
-
-        self.reader = self._tabix.fetch(chrom, start, end)
-        return self
+    def get_contigs(self):
+        self.init_tabix()
+        return self._tabix.contigs
 
 
 class Writer(object):
