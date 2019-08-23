@@ -680,13 +680,12 @@ class _SV(_AltRecord):
         return str(self)
 
 
-def create_call_data(fields_dict, types, nums):
+def _restore_calldata_instance(fields_dict, types, nums):
     calldata_cls = make_calldata_tuple(fields_dict)
     calldata_cls._types = tuple(types)
     calldata_cls._nums = tuple(nums)
     calldata_instance = calldata_cls(*fields_dict.values())
     return calldata_instance
-
 
 def make_calldata_tuple(fields):
     """ Return a namedtuple for a given call format """
@@ -704,6 +703,6 @@ def make_calldata_tuple(fields):
 
         def __reduce__(self):
             _, args, *_ = super(CallData, self).__reduce__()
-            return create_call_data, (self._asdict(), self._types, self._nums)
+            return _restore_calldata_instance, (self._asdict(), self._types, self._nums)
 
     return CallData
