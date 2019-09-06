@@ -703,7 +703,9 @@ def make_calldata_tuple(fields):
             return "CallData(" + dat + ')'
 
         def __reduce__(self):
-            _, args, *_ = super(CallData, self).__reduce__()
-            return _restore_calldata_instance, (self._asdict(), self._types, self._nums)
+            _, args = super(CallData, self).__reduce__()
+            calldata_cls, _, field_values = args
+            values_dict = dict(zip(calldata_cls._fields, field_values))
+            return _restore_calldata_instance, (values_dict, calldata_cls._types, calldata_cls._nums)
 
     return CallData
