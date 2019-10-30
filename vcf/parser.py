@@ -386,7 +386,7 @@ class Reader(object):
         for entry in entries:
             entry = entry.split('=', 1)
 
-            if(len(entry) != 2):
+            if(len(entry) not in [1, 2]):
                 continue
 
             ID = entry[0]
@@ -400,6 +400,9 @@ class Reader(object):
                         entry_type = 'String'
                     else:
                         entry_type = 'Flag'
+
+            if len(entry) == 1 and not entry_type == 'Flag':
+                continue
 
             if entry_type == 'Integer':
                 vals = entry[1].split(',')
@@ -661,12 +664,13 @@ class Writer(object):
     # Reverse keys and values in header field count dictionary
     counts = dict((v,k) for k,v in field_counts.iteritems())
 
-    def __init__(self, stream, template, lineterminator="\n"):
+    def __init__(self, stream, template, lineterminator="\n", none='.'):
         self.writer = csv.writer(stream, delimiter="\t",
                                  lineterminator=lineterminator,
                                  quotechar='', quoting=csv.QUOTE_NONE)
         self.template = template
         self.stream = stream
+        self.none = none
 
         # Order keys for INFO fields defined in the header (undefined fields
         # get a maximum key).
@@ -755,7 +759,7 @@ class Writer(object):
         def order_key(field):
             # Order by header definition first, alphabetically second.
             return self.info_order[field], field
-        return ';'.join(self._stringify_pair(f, info[f]) for f in
+        return ';'.join(self._stringify_pair(f, info[f], none=self.none) for f in
                         sorted(info, key=order_key))
 
     def _format_sample(self, fmt, sample):
